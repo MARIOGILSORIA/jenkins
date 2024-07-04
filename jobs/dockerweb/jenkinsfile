@@ -10,24 +10,6 @@ pipeline {
         name_final = "${params.name_container}${params.tag_imagen}${params.puerto_imagen}"
     }
     stages {
-        stage('stop/rm') {
-            steps {
-                script {
-                    def DOCKER_EXIST = bat(returnStatus: true, script: """
-                        docker ps -a --format "{{.Names}}" | findstr ${name_final}
-                    """)
-                    
-                    if (DOCKER_EXIST.trim() != "") {
-                        bat """
-                            docker stop %name_final%
-                            docker rm %name_final%
-                        """
-                    } else {
-                        echo "Container ${name_final} does not exist or is not running. Skipping stop/rm stage."
-                    }
-                }
-            }
-        }
         stage('build') {
             steps {
                 script {
