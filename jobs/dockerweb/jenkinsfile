@@ -11,18 +11,20 @@ pipeline {
     }
     stages {
         stage('stop/rm') {
-            when {
-                expression {
-                    DOCKER_EXIST = bat(returnStdout: true, script: 'docker ps -q --filter "name=%name_final%"').trim()
-                    return DOCKER_EXIST != ''
-                }
-            }
             steps {
                 script {
-                    bat """
-                        docker stop %name_final%
-                        docker rm %name_final%
-                    """
+                    def DOCKER_EXIST = bat(returnStatus: true, script: """
+                        docker ps -a --format "{{.Names}}" | findstr ${name_final}
+                    """)
+                    
+                    if (DOCKER_EXIST.trim() != "") {
+                        bat """
+                            docker stop %name_final%
+                            docker rm %name_final%
+                        """
+                    } else {
+                        echo "Container ${name_final} does not exist or is not running. Skipping stop/rm stage."
+                    }
                 }
             }
         }
